@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - Gas Utility Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0"><i class="bi bi-box-arrow-in-right me-2"></i>Welcome Back</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary py-2">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3 bg-white">
+                <p class="mb-0">New to our service? <a href="{% url 'register' %}" class="text-primary">Create an account</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Service Request Details - Gas Utility Service{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Service Request Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'service_requests:list' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ service_request.subject }}</h5>
+                <span class="badge {% if service_request.status == 'pending' %}bg-warning{% elif service_request.status == 'in_progress' %}bg-info{% elif service_request.status == 'resolved' %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ service_request.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> Created: {{ service_request.created_at|date:"F d, Y, g:i a" }}
+                        {% if service_request.resolved_at %}
+                        <br><i class="bi bi-check-circle"></i> Resolved: {{ service_request.resolved_at|date:"F d, Y, g:i a" }}
+                        {% endif %}
+                    </small>
+                </div>
+                <p class="card-text">{{ service_request.description|linebreaks }}</p>
+                
+                {% if service_request.attachments.exists %}
+                <div class="mt-4">
+                    <h6>Attachments:</h6>
+                    <ul class="list-group">
+                        {% for attachment in service_request.attachments.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ attachment.file.name|cut:"service_requests/"|cut:service_request.id|cut:"/" }}</span>
+                            <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Category:</strong> {{ service_request.category.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Priority:</strong> 
+                        <span class="badge {% if service_request.priority == 'urgent' %}bg-danger{% elif service_request.priority == 'high' %}bg-warning{% elif service_request.priority == 'medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                            {{ service_request.get_priority_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Comments</h5>
+            </div>
+            <div class="card-body">
+                {% if service_request.comments.exists %}
+                <div class="comments">
+                    {% for comment in service_request.comments.all %}
+                    <div class="comment mb-3 p-3 {% if comment.user == request.user %}bg-light{% else %}bg-white{% endif %} border rounded">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                            <small class="text-muted">{{ comment.created_at|date:"M d, Y, g:i a" }}</small>
+                        </div>
+                        <p class="mb-0 mt-2">{{ comment.comment|linebreaks }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No comments yet.</p>
+                {% endif %}
+                
+                <form method="post" action="{% url 'service_requests:add_comment' service_request.pk %}" class="mt-4">
+                    {% csrf_token %}
+                    {{ comment_form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-2">Add Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Request Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Request ID:</span>
+                        <span class="text-muted">{{ service_request.id }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Customer:</span>
+                        <span class="text-muted">{{ service_request.customer.get_full_name|default:service_request.customer.username }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Status:</span>
+                        <span class="badge {% if service_request.status == 'pending' %}bg-warning{% elif service_request.status == 'in_progress' %}bg-info{% elif service_request.status == 'resolved' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ service_request.get_status_display }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Priority:</span>
+                        <span class="badge {% if service_request.priority == 'urgent' %}bg-danger{% elif service_request.priority == 'high' %}bg-warning{% elif service_request.priority == 'medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                            {{ service_request.get_priority_display }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Created:</span>
+                        <span class="text-muted">{{ service_request.created_at|date:"M d, Y" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Last Updated:</span>
+                        <span class="text-muted">{{ service_request.updated_at|date:"M d, Y" }}</span>
+                    </li>
+                    {% if service_request.assigned_to %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Assigned To:</span>
+                        <span class="text-muted">{{ service_request.assigned_to.get_full_name|default:service_request.assigned_to.username }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        {% if user.is_support or user.is_admin_user %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Update Request</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'service_requests:update' service_request.pk %}">
+                    {% csrf_token %}
+                    {{ update_form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-2">Update Request</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
